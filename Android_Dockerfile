@@ -10,6 +10,7 @@ ARG START_SHELL
 ENV USER="$USER"
 ENV HOME_DIR="/home/${USER}"
 ENV BUILD_HOME="${HOME_DIR}/buildroom"
+# Set environment variables
 RUN echo "USER:${USER}, HOME:${HOME}, TOOL:${TOOL}"
 
 RUN apt update && \
@@ -30,6 +31,7 @@ RUN apt update && \
     libstdc++6:amd64 \
     lib32z1 \
     libbz2-1.0:amd64
+# Set the default user and group IDs
 RUN groupadd -g ${GID} ${USER}
 RUN useradd -g ${GID} -l -m -s /bin/false -u ${UID} --shell /bin/bash ${USER}
 RUN usermod -append --groups sudo ${USER}

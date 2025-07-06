@@ -1,17 +1,16 @@
 #!/bin/bash
 ANDROID_DOCKERFILE="Android_Dockerfile"
 
-HOME="/home/${USER}"
+ENTER_POINT=$1
+HOME="/home/$(whoami)"
 TOOLBOX="${HOME}/TOOL"
 BUILD_ROOM="${HOME}/buildroom"
 
+TOOL="$(pwd)/TOOL"
 Android_TAG="androidbuilder:latest"
 AFTER_SHELL="TOOL/afterbuild.sh"
-TOOL="$(pwd)/TOOL"
 
-ENTER_POINT=$1
 BUILD_SRC="${BUILD_ROOM}/src"
-
 ENTER_POINT=${ENTER_POINT:=${BUILD_ROOM}}
 
 cp ~/.bashrc TOOL/.

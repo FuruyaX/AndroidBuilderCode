@@ -11,7 +11,7 @@ cd ${TOOLBOX}
 # unzip cmd_tool.zip
 # unzip gradle-8.11.1-bin.zip
 # unzip android-ndk-r27c-linux.zip
-set +x
+# set +x
 
 if [[ "${ENTER_DIR}" == "" ]];then
 	cd /home/${USER}
