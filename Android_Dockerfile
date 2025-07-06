@@ -1,0 +1,75 @@
+FROM ubuntu:latest
+ARG HOME
+ARG TOOL
+ARG USER
+ARG UID
+ARG GID
+ARG PATH
+ARG SRC
+ARG START_SHELL
+ENV USER="$USER"
+ENV HOME_DIR="/home/${USER}"
+ENV BUILD_HOME="${HOME_DIR}/buildroom"
+RUN echo "USER:${USER}, HOME:${HOME}, TOOL:${TOOL}"
+
+RUN apt update && \
+    apt install -y \
+    openjdk-21-jdk \
+    patch \
+    sudo \
+    wget \
+    curl \
+    zip \
+    vim \
+    tar \
+    unzip \
+    git \
+    xz-utils \
+    libglu1-mesa \
+    libc6:amd64 \
+    libstdc++6:amd64 \
+    lib32z1 \
+    libbz2-1.0:amd64
+RUN groupadd -g ${GID} ${USER}
+RUN useradd -g ${GID} -l -m -s /bin/false -u ${UID} --shell /bin/bash ${USER}
+RUN usermod -append --groups sudo ${USER}
+RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+RUN echo $(whoami)
+RUN export USER=$USER
+RUN export TOOL=$TOOL
+RUN export BUILD_HOME=$BUILD_HOME
+RUN mkdir -p ${BUILD_HOME}
+COPY TOOL/${START_SHELL} ${TOOL}/.
+COPY TOOL/.bashrc ${TOOL}/.
+WORKDIR ${TOOL}
+RUN wget https://services.gradle.org/distributions/gradle-8.11.1-bin.zip
+RUN wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip?hl=ja -O cmd_tool.zip
+# RUN wget https://dl.google.com/android/repository/android-ndk-r27c-linux.zip?hl=ja -O android-ndk-r27c-linux.zip
+RUN unzip cmd_tool.zip
+RUN unzip gradle-8.11.1-bin.zip
+ENV GRADLE="gradle-8.11.1"
+ENV ANDROID="${TOOL}/Android/SDK"
+ENV SDK="${ANDROID}/cmdline-tools/latest/bin/sdkmanager"
+RUN echo "export PATH=${ANDROID}/cmdline-tools/latest/bin:${ANDROID}/ndk-bundle/latest/bin:${ANDROID}/${GRADLE}/latest/bin:$PATH" >> ${TOOL}/.bashrc
+RUN echo "export ANDROID_SDK_ROOT=${ANDROID}/" >> ${TOOL}/.bashrc
+RUN echo "alias android='${ANDROID}/cmdline-tools/latest/bin/avdmanager'" >> ${TOOL}/.bashrc
+RUN mkdir -p Android && \
+    mkdir -p ${ANDROID} && \
+    mkdir -p latest && \
+    mv cmdline-tools/* latest/. && \
+    mv latest cmdline-tools/. && \
+    mv cmdline-tools ${ANDROID}/. && \
+    mkdir -p latest && \
+    mv ${GRADLE}/* latest/. && \
+    mv latest ${GRADLE}/. && \
+    mv ${GRADLE} ${ANDROID}/. 
+# agree sdkmanager licenses
+RUN mkdir ~/.android && \
+	touch ~/.android/repositories.cfg
+RUN yes | ${SDK} --licenses
+RUN chown ${USER}:${USER} -R ${HOME}
+USER $USER
+RUN yes | ${SDK} --sdk_root=${TOOL}/Android/SDK/ "platform-tools" "platforms;android-30" "ndk-bundle" "build-tools;30.0.3"
+RUN export PATH=$PATH:${TOOL}:${ANDROID}/cmdline-tools/latest/bin/avdmanager
+# WORKDIR ${TOOL}
+CMD ["bash"]
